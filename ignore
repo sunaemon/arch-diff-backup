@@ -1,0 +1,118 @@
+# managed by other tools
+/home/.*
+/mnt/.*
+/var/lib/machines/
+
+# file system
+.*/lost\+found/
+
+# backup
+/etc/group-
+/etc/gshadow-
+/etc/passwd-
+/etc/shadow-
+/var/lib/upower/.*
+
+# manual build
+/usr/share/git/credential/gnome-keyring/git-credential-gnome-keyring
+/usr/share/git/credential/gnome-keyring/git-credential-gnome-keyring.o
+
+# cretificates
+/etc/ca-certificates/extracted/ca-bundle.trust.crt
+/etc/ca-certificates/extracted/cadir/
+/etc/ca-certificates/extracted/email-ca-bundle.pem
+/etc/ca-certificates/extracted/objsign-ca-bundle.pem
+/etc/ca-certificates/extracted/tls-ca-bundle.pem
+
+# caches
+/usr/share/fonts/OTF/fonts.dir
+/usr/share/fonts/OTF/fonts.scale
+/usr/share/fonts/TTF/fonts.dir
+/usr/share/fonts/TTF/fonts.scale
+/usr/share/fonts/Type1/fonts.dir
+/usr/share/fonts/Type1/fonts.scale
+/usr/share/fonts/mathjax/HTML-CSS/Asana-Math/woff/fonts.dir
+/usr/share/fonts/mathjax/HTML-CSS/Asana-Math/woff/fonts.scale
+/usr/share/fonts/mathjax/HTML-CSS/Gyre-Pagella/woff/fonts.dir
+/usr/share/fonts/mathjax/HTML-CSS/Gyre-Pagella/woff/fonts.scale
+/usr/share/fonts/mathjax/HTML-CSS/Gyre-Termes/woff/fonts.dir
+/usr/share/fonts/mathjax/HTML-CSS/Gyre-Termes/woff/fonts.scale
+/usr/share/fonts/mathjax/HTML-CSS/Latin-Modern/woff/fonts.dir
+/usr/share/fonts/mathjax/HTML-CSS/Latin-Modern/woff/fonts.scale
+/usr/share/fonts/mathjax/HTML-CSS/Neo-Euler/woff/fonts.dir
+/usr/share/fonts/mathjax/HTML-CSS/Neo-Euler/woff/fonts.scale
+/usr/share/fonts/mathjax/HTML-CSS/STIX-Web/woff/fonts.dir
+/usr/share/fonts/mathjax/HTML-CSS/STIX-Web/woff/fonts.scale
+/usr/share/fonts/mathjax/HTML-CSS/TeX/woff/fonts.dir
+/usr/share/fonts/mathjax/HTML-CSS/TeX/woff/fonts.scale
+/usr/share/fonts/misc/fonts.dir
+/usr/share/fonts/misc/fonts.scale
+/etc/ld.so.cache
+/etc/lvm/cache/
+/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+/usr/lib/gio/modules/giomodule.cache
+/usr/lib/gtk-2.0/2.10.0/immodules.cache
+/usr/lib/gtk-3.0/3.0.0/immodules.cache
+/usr/share/applications/mimeinfo.cache
+/usr/share/icons/Adwaita/icon-theme.cache
+/usr/share/icons/gnome/icon-theme.cache
+/usr/share/icons/hicolor/icon-theme.cache
+/var/cache/cups/
+/var/cache/ldconfig/
+/var/cache/man/
+/var/cache/powertop/
+/var/lib/pacman/local/
+/var/lib/pacman/sync/
+/var/lib/ntp/ntp.drift
+
+# release
+/etc/os-release
+/var/lib/os-prober/labels
+
+# tex
+/usr/share/texmf/ls-R
+/usr/share/texmf-dis/
+/var/lib/texmf/fonts/
+/var/lib/texmf/ls-R
+/var/lib/texmf/web2c/
+/etc/texmf/ls-R
+/usr/share/mime/.*
+/usr/share/texmf-dist/ls-R
+/var/lib/texmf/luatex-cache/
+
+# wrong package
+/usr/lib/libdialog.so.12.0.0
+/etc/fonts/conf.d/20-unhint-small-dejavu-sans-mono.conf
+/etc/fonts/conf.d/20-unhint-small-dejavu-sans.conf
+/etc/fonts/conf.d/20-unhint-small-dejavu-serif.conf
+/etc/fonts/conf.d/57-dejavu-sans-mono.conf
+/etc/fonts/conf.d/57-dejavu-sans.conf
+/etc/fonts/conf.d/57-dejavu-serif.conf
+
+# variable
+/var/lib/systemd/backlight/
+/var/lib/systemd/catalog/
+/var/lib/systemd/coredump/
+/var/lib/systemd/random-seed/
+/var/lib/systemd/timers/
+/var/lib/colord/mapping.db
+/var/lib/colord/storage.db
+/var/lib/gssproxy/default.sock
+/var/lib/logrotate.status
+/var/lib/lxdm/lxdm.conf
+/etc/udev/hwdb.bin
+/var/db/sudo/lectured/yuu
+
+# control
+/etc/.pwd.lock
+/etc/.updated
+/var/.updated
+/var/lib/nfs/rpc_pipefs/.*
+
+/etc/gtk-2.0/gdk-pixbuf.loaders
+/usr/share/glib-2.0/schemas/gschemas.compiled
+
+/etc/pacman.d/gnupg
+/etc/xml/catalog
+/usr/share/\.mono/
+/usr/share/info/dir
