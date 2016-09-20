@@ -116,3 +116,4 @@
 /etc/xml/catalog
 /usr/share/\.mono/
 /usr/share/info/dir
+/usr/share/doc/ghc/html/libraries/.*
