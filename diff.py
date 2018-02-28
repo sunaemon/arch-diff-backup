@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import subprocess, re, itertools, yaml, os, functools, stat, difflib, tarfile, pickle
+import subprocess, re, itertools, os, functools, stat, difflib, tarfile, pickle
 import cProfile
 import multiprocessing as mp
 import random
