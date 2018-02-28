@@ -1,61 +1,72 @@
 #!/usr/bin/python
 
-import subprocess, re, itertools, os, functools, stat, difflib, tarfile, pickle
-import cProfile
-import multiprocessing as mp
-import random
+import subprocess
+import re
+import itertools
+import os
+import stat
+import difflib
+import tarfile
+import multiprocessing
 
-def get_prop_of_pkg(pkg):
-    p = subprocess.Popen(["/usr/bin/pacman", "-Qi", pkg], stdout=subprocess.PIPE)
+
+def get_property_of_pkg(pkg):
+    proc = subprocess.Popen(["/usr/bin/pacman", "-Qi", pkg], stdout=subprocess.PIPE)
 
     prop = {}
-    for line in p.stdout:
+    for line in proc.stdout:
         m = re.match(r"^([\w\s]*?)\s* : (.*)$", line.decode())
         if m:
             prop[m.group(1)] = m.group(2)
     return prop
 
+
 def parse_filename(raw):
     d = ""
-    i=0
+    i = 0
     while i < len(raw):
         if raw[i] != '\\':
-            d+=raw[i]
-            i+=1
+            d += raw[i]
+            i += 1
         else:
-            d+=chr(int(raw[i+1:i+4], 8))
-            i+=4
+            d += chr(int(raw[i + 1:i + 4], 8))
+            i += 4
     return d
 
+
 def get_mtree(pkg):
-    prop = get_prop_of_pkg(pkg)
-    p = subprocess.Popen(["/usr/bin/zcat", "/var/lib/pacman/local/" + prop["Name"] + "-" + prop["Version"] + "/mtree"], stdout=subprocess.PIPE, universal_newlines=True)
+    prop = get_property_of_pkg(pkg)
+    name = prop['Name']
+    version = prop['Version']
+    mtreepath = f"/var/lib/pacman/local/{name}-{version}/mtree"
+    p = subprocess.Popen(["/usr/bin/zcat", mtreepath], stdout=subprocess.PIPE, universal_newlines=True)
     d = {}
     mtree = {}
     for line in p.stdout:
-        if re.match(r"^$", line): continue
-        if re.match(r"^#", line): continue
-        a = line.split()
-        if a[0] == "/set":
-            for p in itertools.islice(a,1,None):
+        if line == '':
+            continue
+        if re.match(r"^#", line):
+            continue
+        words = line.split()
+        if words[0] == "/set":
+            for p in itertools.islice(words, 1, None):
                 m = re.match(r"^(?P<name>[^=]*)=(?P<value>.*)$", p)
                 d[m.group("name")] = m.group("value")
             continue
-        if a[0] == "./.INSTALL" : continue
-        if a[0] == "./.PKGINFO" : continue
-        if a[0] == "./.CHANGELOG" : continue
-        if a[0] == "./.BUILDINFO" : continue
+        if words[0] in ["./.INSTALL", "./.PKGINFO", "./.CHANGELOG", "./.BUILDINFO"]:
+            continue
         dd = d.copy()
-        for p in itertools.islice(a,1,None):
+        for p in itertools.islice(words, 1, None):
             m = re.match(r"^(?P<name>[^=]*)=(?P<value>.*)$", p)
             dd[m.group("name")] = m.group("value")
         dd["package"] = pkg
 
-        mtree[os.path.normpath(os.path.join('/', parse_filename(a[0])))]=dd
+        mtree[os.path.normpath(os.path.join('/', parse_filename(words[0])))] = dd
     return mtree
 
+
 def get_mtrees_parallel(packages):
-    pool = mp.Pool()
+    pool = multiprocessing.Pool()
     callback = pool.map(get_mtree, packages)
 
     mtree = {}
@@ -64,31 +75,33 @@ def get_mtrees_parallel(packages):
 
     return mtree
 
+
 def get_digest(files):
     digests = {}
 
-    #print("files", len(files))
-
     p = subprocess.Popen(["/usr/bin/sha256sum"] + files, stdout=subprocess.PIPE, universal_newlines=True)
     for line in p.stdout:
-        m = re.match(r"^(?P<hash>[^ ]*) +(?P<path>.*)$", line)
-        digests[m.group("path")] = m.group("hash")
+        match = re.match(r"^(?P<hash>[^ ]*) +(?P<path>.*)$", line)
+        digests[match.group("path")] = match.group("hash")
 
     return digests
 
-def get_digest_parallel(files):
-    ARG_MAX = min(int(subprocess.check_output(["getconf", "ARG_MAX"]))-2, int(len(files)/mp.cpu_count()))
 
-    print("ARG_MAX:", ARG_MAX)
+def get_digest_parallel(files):
+    arg_max = int(subprocess.check_output(["getconf", "ARG_MAX"]))-2
+    max_par = int(len(files)/multiprocessing.cpu_count())
+    amax = min(arg_max, max_par)
+
+    print("AMAX:", amax)
 
     chunks = []
 
     n = 0
-    while n<len(files):
-        chunks.append(files[n:n+ARG_MAX])
-        n+=ARG_MAX
+    while n < len(files):
+        chunks.append(files[n:n + amax])
+        n += amax
 
-    pool = mp.Pool()
+    pool = multiprocessing.Pool()
     callback = pool.map(get_digest, chunks)
 
     digests = {}
@@ -98,18 +111,28 @@ def get_digest_parallel(files):
     return digests
 
 # See https://stackoverflow.com/questions/898669/how-can-i-detect-if-a-file-is-binary-non-text-in-python/7392391#7392391
-textchars = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
+textchars = bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7f})
+
+
 def is_binary_string(bytes):
     return bool(bytes.translate(None, textchars))
+
+
 def is_binary_file(path):
     return is_binary_string(open(path, 'rb').read(1024))
 
-def print_diff(k,v):
-    prop = get_prop_of_pkg(v["package"])
-    a = tarfile.open("/var/cache/pacman/pkg/" + prop["Name"] + "-" + prop["Version"] + "-" + prop["Architecture"] + ".pkg.tar.xz").extractfile(k[1:])
+
+def print_diff(k, v):
+    prop = get_property_of_pkg(v["package"])
+    name = prop['Name']
+    version = prop['Version']
+    arch = prop['Architecture']
+    pkg_path = f"/var/cache/pacman/pkg/{name}-{version}-{arch}.pkg.tar.xz"
+    a = tarfile.open(pkg_path).extractfile(k[1:])
     if not is_binary_string(a.read(1024)) and not is_binary_file(k):
         for l in difflib.unified_diff(a.read().decode().splitlines(), open(k, "r").read().splitlines(), "a"+k, "b"+k):
             print(l.rstrip("\n"))
+
 
 def run():
     p = subprocess.Popen(["/usr/bin/pacman", "-Q"], stdout=subprocess.PIPE, universal_newlines=True)
@@ -135,7 +158,7 @@ def run():
     print("got digest")
 
     modified_files_list = []
-    for k,v in mtree.items():
+    for k, v in mtree.items():
         try:
             st = os.lstat(k)
         except PermissionError as e:
@@ -151,7 +174,7 @@ def run():
                 print(k, "no digest culculated")
             elif v['sha256digest'] != digests[k]:
                 print(k, "hash changed:", v['sha256digest'], "to", digests[k])
-                modified_files_list.append((k,v))
+                modified_files_list.append((k, v))
             if mode != v['mode']:
                 print(k, "mode modified", v['mode'], "to", mode)
             if uid != v['uid']:
@@ -183,8 +206,8 @@ def run():
         else:
             print(k, "unknown file type", v['type'])
 
-    for k,v in modified_files_list:
-        print_diff(k,v)
+    for k, v in modified_files_list:
+        print_diff(k, v)
+
 
 run()
-#cProfile.run('run()')
