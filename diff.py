@@ -8,7 +8,10 @@ import stat
 import difflib
 import tarfile
 import multiprocessing
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def get_property_of_pkg(pkg):
     proc = subprocess.Popen(["/usr/bin/pacman", "-Qi", pkg], stdout=subprocess.PIPE)
@@ -92,7 +95,7 @@ def get_digest_parallel(files):
     max_par = int(len(files)/multiprocessing.cpu_count())
     amax = min(arg_max, max_par)
 
-    print("AMAX:", amax)
+    logger.info("AMAX:", amax)
 
     chunks = []
 
@@ -141,29 +144,29 @@ def run():
     for line in p.stdout:
         packages.append(line.split()[0])
 
-    print("read package list")
+    logger.info("read package list")
 
     mtree = get_mtrees_parallel(packages)
 
-    print("read mtree")
+    logger.info("read mtree")
 
     files = []
     for k, v in mtree.items():
         if v['type'] == 'file':
             files.append(k)
 
-    print("got file list")
+    logger.info("got file list")
 
     digests = get_digest_parallel(files)
 
-    print("got digest")
+    logger.info("got digest")
 
     modified_files_list = []
     for k, v in mtree.items():
         try:
             st = os.lstat(k)
         except PermissionError as e:
-            print(e)
+            logger.warning(e)
 
         mode = oct(stat.S_IMODE(st.st_mode))[2:]
         uid = str(st.st_uid)
@@ -211,4 +214,5 @@ def run():
         print_diff(k, v)
 
 
-run()
+if __name__ == '__main__':
+    run()
